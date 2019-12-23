@@ -13,7 +13,11 @@ int const inputPin = A0;
 int const servoPin = 9;
 int const mapMin = 0;
 int const mapMax = 100;
-int const mapThr = 50;
+int const mapThr = 35;
+
+int const seconds = 1000;
+int const minutes = 60 * seconds;
+int const timeToWait = N * seconds;
 
 void setup() {
 
@@ -28,7 +32,7 @@ void setup() {
   */
 
   myServo.attach(servoPin);
-  myServo.write(0);
+  myServo.write(90);
 
   delay(5000);
 }
@@ -43,15 +47,31 @@ void loop() {
   Serial.print(" mapVal: ");
   Serial.println(mapVal);
 
-  int tempToGo = tempLow;
+  // boolean flag to have the servo wait once set at tempHi
+  bool isOn = false;
+  
+  int tempToGo = tempLo;
+  if (tempLo < tempLoBound) {
+    tempToGo = tempLoBound;
+  }
   if (mapVal > mapThr) {
     Serial.println("mapped value is above threshold!");
-    tempToGo = tempHigh;
+    if (tempHi < tempHiBound) {
+      tempToGo = tempHi;
+    }
+    else {
+      tempToGo = tempHiBound;
+    }
+    isOn = true;
   }
   else Serial.println("mapped value is below threshold :(");
 
-  int angle = map(tempToGo, 0, 90, 0, 179);
-  myServo.write(angle);
+  int angleToGo = map(tempToGo, knobLoBound, knobHiBound, 180, 0);
+  myServo.write(angleToGo);
+  
+  if (isOn) {
+    delay(timeToWait);
+  }
   
   delay(1000);
 }
